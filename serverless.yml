@@ -1,0 +1,104 @@
+# For full config options, check the docs:
+#    docs.serverless.com
+
+service: RustyPuppies
+provider:
+  name: aws
+  runtime: rust
+  memorySize: 128
+  region: eu-north-1
+  stage: dev
+  environment:
+    RUST_BACKTRACE: 1
+    DYNAMODB_TABLE: PuppyTable-${opt:stage, self:provider.stage, 'dev'}
+    SQS_NAME: PuppyQueue-${opt:stage, self:provider.stage, 'dev'}
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:Scan*
+      Resource: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:provider.environment.DYNAMODB_TABLE}
+
+    - Effect: "Allow"
+      Action:
+        - "sqs:SendMessage"
+        - "sqs:GetQueueUrl"
+      Resource: "arn:aws:sqs:#{AWS::Region}:#{AWS::AccountId}:${self:provider.environment.SQS_NAME}"
+
+    - Effect: "Allow"
+      Action:
+        - "sqs:ListQueues"
+      Resource: "arn:aws:sqs:#{AWS::Region}:#{AWS::AccountId}:*"
+
+package:
+  individually: true
+
+plugins:
+  - serverless-pseudo-parameters
+  - serverless-rust
+
+functions:
+  barker:
+    handler: puppy_barker
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - PuppyQueue
+              - Arn
+
+  create:
+    handler: puppy_create
+    events:
+      - http:
+          path: /puppy
+          method: POST
+          request:
+            schema:
+              application/json: ${file(schema/puppy.json)}
+  read:
+    handler: puppy_read
+    events:
+      - http:
+          path: /puppy/{name}
+          method: GET
+
+  update:
+    handler: puppy_update
+    events:
+      - http:
+          path: /puppy/{name}
+          method: PUT
+          request:
+            schema:
+              application/json: ${file(schema/puppy_put.json)}
+
+    delete:
+      handler: puppy_delete
+      events:
+        - http:
+            path: /puppy/{name}
+            method: DELETE
+
+resources:
+  Resources:
+    PuppyTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: name
+            AttributeType: S
+        KeySchema:
+          - AttributeName: name
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    PuppyQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:provider.environment.SQS_NAME}

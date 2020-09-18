@@ -1,0 +1,10 @@
+[workspace]
+
+members = [
+    "core",
+    "puppy_barker",
+    "puppy_create",
+    "puppy_delete",
+    "puppy_read",
+    "puppy_update",
+]

@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "breed": {
+            "type": "string",
+            "maxLength": 50
+        },
+        "age": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 35
+        }
+    }
+}

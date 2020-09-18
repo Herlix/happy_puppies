@@ -1,0 +1,15 @@
+[package]
+name = "puppy_read"
+version = "0.1.0"
+authors = ["Alexander Herlin <alexander.herlin@outlook.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+core = { path = "../core" }
+tokio = {version = "0.2", features = ["macros"]}
+lambda_http = { git = "https://github.com/awslabs/aws-lambda-rust-runtime", branch = "master"}
+lambda_runtime_errors = "0.1"
+serde_json = "1.0"
+serde = {version =  "1.0", features = ["derive"]}

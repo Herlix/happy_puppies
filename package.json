@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "serverless": "2.1",
+    "serverless-rust": "0.3",
+    "serverless-pseudo-parameters": "2.5"
+  }
+}
